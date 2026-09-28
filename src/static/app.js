@@ -398,12 +398,19 @@ document.addEventListener("DOMContentLoaded", () => {
       console.warn("Unable to decode shared activity target:", error);
     }
 
-    if (!targetId || targetId === lastSharedActivityTarget) {
+    if (!targetId) {
       return;
     }
 
     const targetActivity = document.getElementById(targetId);
     if (!targetActivity) {
+      return;
+    }
+
+    if (
+      targetId === lastSharedActivityTarget &&
+      highlightedSharedActivity === targetActivity
+    ) {
       return;
     }
 
