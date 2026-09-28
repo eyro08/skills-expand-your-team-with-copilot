@@ -47,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Authentication state
   let currentUser = null;
   let currentTheme = "light";
+  let hasSavedThemePreference = false;
 
   // Time range mappings for the dropdown
   const timeRanges = {
@@ -64,7 +65,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function saveTheme(theme) {
+  function saveTheme(theme, persist) {
+    if (!persist) {
+      return;
+    }
+
     try {
       localStorage.setItem("theme", theme);
     } catch (error) {
@@ -97,10 +102,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function applyTheme(theme) {
+  function applyTheme(theme, persist = true) {
     currentTheme = theme === "dark" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", currentTheme);
-    saveTheme(currentTheme);
+    saveTheme(currentTheme, persist);
 
     const isDarkMode = currentTheme === "dark";
     const toggleLabel = isDarkMode
@@ -113,13 +118,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function initializeTheme() {
     const savedTheme = getStoredTheme();
+    hasSavedThemePreference = Boolean(savedTheme);
+    const systemThemeQuery =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)");
     const preferredTheme =
       savedTheme ||
-      (window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
+      (systemThemeQuery && systemThemeQuery.matches
         ? "dark"
         : "light");
-    applyTheme(preferredTheme);
+    applyTheme(preferredTheme, hasSavedThemePreference);
+
+    if (systemThemeQuery) {
+      systemThemeQuery.addEventListener("change", (event) => {
+        if (!hasSavedThemePreference) {
+          applyTheme(event.matches ? "dark" : "light", false);
+        }
+      });
+    }
   }
 
   // Initialize filters from active elements
@@ -307,6 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Event listeners for authentication
   themeToggle.addEventListener("click", () => {
+    hasSavedThemePreference = true;
     applyTheme(currentTheme === "dark" ? "light" : "dark");
   });
   loginButton.addEventListener("click", openLoginModal);

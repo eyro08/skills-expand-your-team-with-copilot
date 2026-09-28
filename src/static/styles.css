@@ -33,6 +33,7 @@
   --header-control-background: rgba(255, 255, 255, 0.2);
   --header-control-hover: rgba(255, 255, 255, 0.3);
   --tooltip-background: rgba(33, 33, 33, 0.9);
+  --tooltip-text: #ffffff;
   --overlay-background: rgba(0, 0, 0, 0.5);
   --focus-ring: rgba(83, 75, 174, 0.1);
 }
@@ -64,6 +65,7 @@
   --header-control-background: rgba(17, 24, 39, 0.3);
   --header-control-hover: rgba(17, 24, 39, 0.45);
   --tooltip-background: rgba(243, 244, 246, 0.95);
+  --tooltip-text: #10162f;
   --overlay-background: rgba(3, 7, 18, 0.75);
   --focus-ring: rgba(143, 164, 255, 0.2);
 }
@@ -344,7 +346,7 @@ button {
 .tooltip .tooltip-text {
   visibility: hidden;
   background-color: var(--tooltip-background);
-  color: var(--text-primary);
+  color: var(--tooltip-text);
   text-align: center;
   padding: 8px 12px;
   border-radius: 4px;
