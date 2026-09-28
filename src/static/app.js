@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const displayName = document.getElementById("display-name");
   const logoutButton = document.getElementById("logout-button");
   const themeToggle = document.getElementById("theme-toggle");
-  const themeToggleText = document.getElementById("theme-toggle-text");
   const themeIcon = themeToggle.querySelector(".theme-icon");
   const loginModal = document.getElementById("login-modal");
   const loginForm = document.getElementById("login-form");
@@ -55,22 +54,63 @@ document.addEventListener("DOMContentLoaded", () => {
     weekend: { days: ["Saturday", "Sunday"] }, // Weekend days
   };
 
+  function getStoredTheme() {
+    try {
+      return localStorage.getItem("theme");
+    } catch (error) {
+      console.warn("Unable to read saved theme preference.", error);
+      return null;
+    }
+  }
+
+  function saveTheme(theme) {
+    try {
+      localStorage.setItem("theme", theme);
+    } catch (error) {
+      console.warn("Unable to save theme preference.", error);
+    }
+  }
+
+  function getStoredCurrentUser() {
+    try {
+      return localStorage.getItem("currentUser");
+    } catch (error) {
+      console.warn("Unable to read saved login session.", error);
+      return null;
+    }
+  }
+
+  function saveCurrentUser(user) {
+    try {
+      localStorage.setItem("currentUser", JSON.stringify(user));
+    } catch (error) {
+      console.warn("Unable to save login session.", error);
+    }
+  }
+
+  function clearStoredCurrentUser() {
+    try {
+      localStorage.removeItem("currentUser");
+    } catch (error) {
+      console.warn("Unable to clear saved login session.", error);
+    }
+  }
+
   function applyTheme(theme) {
     currentTheme = theme === "dark" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", currentTheme);
-    localStorage.setItem("theme", currentTheme);
+    saveTheme(currentTheme);
 
     const isDarkMode = currentTheme === "dark";
     themeToggle.setAttribute(
       "aria-label",
       isDarkMode ? "Switch to light mode" : "Switch to dark mode"
     );
-    themeToggleText.textContent = isDarkMode ? "Light mode" : "Dark mode";
     themeIcon.textContent = isDarkMode ? "☀️" : "🌙";
   }
 
   function initializeTheme() {
-    applyTheme(localStorage.getItem("theme") || "light");
+    applyTheme(getStoredTheme() || "light");
   }
 
   // Initialize filters from active elements
@@ -122,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Check if user is already logged in (from localStorage)
   function checkAuthentication() {
-    const savedUser = localStorage.getItem("currentUser");
+    const savedUser = getStoredCurrentUser();
     if (savedUser) {
       try {
         currentUser = JSON.parse(savedUser);
@@ -155,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Session is valid, update user data
       const userData = await response.json();
       currentUser = userData;
-      localStorage.setItem("currentUser", JSON.stringify(userData));
+      saveCurrentUser(userData);
       updateAuthUI();
     } catch (error) {
       console.error("Error validating session:", error);
@@ -212,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Login successful
       currentUser = data;
-      localStorage.setItem("currentUser", JSON.stringify(data));
+      saveCurrentUser(data);
       updateAuthUI();
       closeLoginModalHandler();
       showMessage(`Welcome, ${currentUser.display_name}!`, "success");
@@ -227,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Logout function
   function logout() {
     currentUser = null;
-    localStorage.removeItem("currentUser");
+    clearStoredCurrentUser();
     updateAuthUI();
     showMessage("You have been logged out.", "info");
   }
