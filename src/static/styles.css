@@ -267,6 +267,61 @@ section h3 {
   align-items: center;
 }
 
+.share-actions {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.share-label {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.share-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.share-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--primary-light);
+  color: var(--primary-text);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 5px 10px;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.share-action:hover,
+.share-action:focus {
+  background-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.share-action:focus-visible {
+  outline: 3px solid var(--secondary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.shared-activity-highlight {
+  box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.35);
+}
+
 /* Buttons */
 .register-button {
   background: linear-gradient(145deg, var(--secondary), var(--secondary-dark));

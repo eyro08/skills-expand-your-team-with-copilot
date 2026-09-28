@@ -43,6 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Authentication state
   let currentUser = null;
+  let lastSharedActivityTarget = "";
+  let sharedActivityHighlightTimeout = null;
+  let highlightedSharedActivity = null;
 
   // Time range mappings for the dropdown
   const timeRanges = {
@@ -304,6 +307,134 @@ document.addEventListener("DOMContentLoaded", () => {
     return details.schedule;
   }
 
+  function getActivityAnchor(name, details) {
+    const scheduleIdentifier = details.schedule_details
+      ? [
+          details.schedule_details.days.join("-"),
+          details.schedule_details.start_time,
+          details.schedule_details.end_time,
+        ].join("-")
+      : details.schedule || details.description;
+
+    const anchorSource = `${name}-${scheduleIdentifier}`;
+
+    return `activity-${anchorSource
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")}`;
+  }
+
+  function getActivityShareDetails(name, details) {
+    const schedule = formatSchedule(details);
+    const shareUrl = `${window.location.origin}${window.location.pathname}#${getActivityAnchor(
+      name,
+      details
+    )}`;
+    const shareText = `Check out ${name} at Mergington High School! ${details.description} Meet-up time: ${schedule}.`;
+
+    return {
+      shareUrl,
+      shareText,
+      emailSubject: `Check out ${name} at Mergington High School`,
+    };
+  }
+
+  function buildShareLink(platform, shareDetails) {
+    const { shareText, shareUrl, emailSubject } = shareDetails;
+
+    if (platform === "email") {
+      return `mailto:?subject=${encodeURIComponent(
+        emailSubject
+      )}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}`)}`;
+    }
+
+    if (platform === "facebook") {
+      return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        shareUrl
+      )}&quote=${encodeURIComponent(shareText)}`;
+    }
+
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      shareText
+    )}&url=${encodeURIComponent(shareUrl)}`;
+  }
+
+  async function copyShareDetails(shareDetails) {
+    const shareContent = `${shareDetails.shareText}\n\n${shareDetails.shareUrl}`;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareContent);
+      } else {
+        const helperTextArea = document.createElement("textarea");
+        helperTextArea.value = shareContent;
+        helperTextArea.setAttribute("readonly", "");
+        helperTextArea.style.position = "absolute";
+        helperTextArea.style.left = "-9999px";
+        document.body.appendChild(helperTextArea);
+        helperTextArea.select();
+        const wasCopied = document.execCommand("copy");
+        document.body.removeChild(helperTextArea);
+
+        if (!wasCopied) {
+          throw new Error("Fallback copy command failed");
+        }
+      }
+
+      showMessage("Share details copied. Ready to send to a friend!", "success");
+    } catch (error) {
+      console.error("Error copying share details:", error);
+      showMessage("Couldn't copy the share details. Please try again.", "error");
+    }
+  }
+
+  function focusSharedActivity() {
+    const rawTargetId = window.location.hash.replace(/^#/, "");
+    let targetId = rawTargetId;
+
+    try {
+      targetId = decodeURIComponent(rawTargetId);
+    } catch (error) {
+      console.warn("Unable to decode shared activity target:", error);
+    }
+
+    if (!targetId) {
+      return;
+    }
+
+    const targetActivity = document.getElementById(targetId);
+    if (!targetActivity) {
+      return;
+    }
+
+    if (
+      targetId === lastSharedActivityTarget &&
+      highlightedSharedActivity === targetActivity
+    ) {
+      return;
+    }
+
+    if (
+      highlightedSharedActivity &&
+      highlightedSharedActivity !== targetActivity
+    ) {
+      highlightedSharedActivity.classList.remove("shared-activity-highlight");
+    }
+
+    lastSharedActivityTarget = targetId;
+    highlightedSharedActivity = targetActivity;
+    targetActivity.classList.add("shared-activity-highlight");
+    targetActivity.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    clearTimeout(sharedActivityHighlightTimeout);
+    sharedActivityHighlightTimeout = setTimeout(() => {
+      targetActivity.classList.remove("shared-activity-highlight");
+      if (highlightedSharedActivity === targetActivity) {
+        highlightedSharedActivity = null;
+      }
+    }, 2500);
+  }
+
   // Function to determine activity type (this would ideally come from backend)
   function getActivityType(activityName, description) {
     const name = activityName.toLowerCase();
@@ -470,12 +601,17 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(filteredActivities).forEach(([name, details]) => {
       renderActivityCard(name, details);
     });
+
+    focusSharedActivity();
   }
 
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
+    const activityAnchor = getActivityAnchor(name, details);
+    const shareLabelId = `${activityAnchor}-share-label`;
+    activityCard.id = activityAnchor;
 
     // Calculate spots and capacity
     const totalSpots = details.max_participants;
@@ -498,6 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
+    const shareDetails = getActivityShareDetails(name, details);
 
     // Create activity tag
     const tagHtml = `
@@ -552,6 +689,36 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
+      <div class="share-actions" aria-labelledby="${shareLabelId}">
+        <span class="share-label" id="${shareLabelId}">Share with friends:</span>
+        <div class="share-buttons" role="group" aria-labelledby="${shareLabelId}">
+          <button type="button" class="share-action share-copy-button">Copy Details</button>
+          <a
+            class="share-action"
+            href="${buildShareLink("email", shareDetails)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Email
+          </a>
+          <a
+            class="share-action"
+            href="${buildShareLink("facebook", shareDetails)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Facebook
+          </a>
+          <a
+            class="share-action"
+            href="${buildShareLink("x", shareDetails)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            X
+          </a>
+        </div>
+      </div>
       <div class="activity-card-actions">
         ${
           currentUser
@@ -576,6 +743,13 @@ document.addEventListener("DOMContentLoaded", () => {
     deleteButtons.forEach((button) => {
       button.addEventListener("click", handleUnregister);
     });
+
+    const copyShareButton = activityCard.querySelector(".share-copy-button");
+    if (copyShareButton) {
+      copyShareButton.addEventListener("click", () => {
+        copyShareDetails(shareDetails);
+      });
+    }
 
     // Add click handler for register button (only when authenticated)
     if (currentUser) {
@@ -860,6 +1034,11 @@ document.addEventListener("DOMContentLoaded", () => {
     setDayFilter,
     setTimeRangeFilter,
   };
+
+  window.addEventListener("hashchange", () => {
+    lastSharedActivityTarget = "";
+    focusSharedActivity();
+  });
 
   // Initialize app
   checkAuthentication();
