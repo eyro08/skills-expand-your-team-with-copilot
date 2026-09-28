@@ -103,11 +103,11 @@ document.addEventListener("DOMContentLoaded", () => {
     saveTheme(currentTheme);
 
     const isDarkMode = currentTheme === "dark";
-    themeToggle.setAttribute(
-      "aria-label",
-      isDarkMode ? "Switch to light mode" : "Switch to dark mode"
-    );
-    themeToggleText.textContent = isDarkMode ? "Dark mode" : "Light mode";
+    const toggleLabel = isDarkMode
+      ? "Dark mode (switch to light mode)"
+      : "Light mode (switch to dark mode)";
+    themeToggle.setAttribute("aria-label", toggleLabel);
+    themeToggleText.textContent = toggleLabel;
     themeIcon.textContent = isDarkMode ? "☀️" : "🌙";
   }
 
