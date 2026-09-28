@@ -305,8 +305,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return details.schedule;
   }
 
-  function getActivityAnchor(name) {
-    return `activity-${name
+  function getActivityAnchor(name, details) {
+    const scheduleIdentifier = details.schedule_details
+      ? [
+          details.schedule_details.days.join("-"),
+          details.schedule_details.start_time,
+          details.schedule_details.end_time,
+        ].join("-")
+      : details.schedule || details.description;
+
+    const anchorSource = `${name}-${scheduleIdentifier}`;
+
+    return `activity-${anchorSource
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "")}`;
@@ -315,7 +325,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function getActivityShareDetails(name, details) {
     const schedule = formatSchedule(details);
     const shareUrl = `${window.location.origin}${window.location.pathname}#${getActivityAnchor(
-      name
+      name,
+      details
     )}`;
     const shareText = `Check out ${name} at Mergington High School! ${details.description} Meet-up time: ${schedule}.`;
 
@@ -360,8 +371,12 @@ document.addEventListener("DOMContentLoaded", () => {
         helperTextArea.style.left = "-9999px";
         document.body.appendChild(helperTextArea);
         helperTextArea.select();
-        document.execCommand("copy");
+        const wasCopied = document.execCommand("copy");
         document.body.removeChild(helperTextArea);
+
+        if (!wasCopied) {
+          throw new Error("Fallback copy command failed");
+        }
       }
 
       showMessage("Share details copied. Ready to send to a friend!", "success");
@@ -566,7 +581,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
-    activityCard.id = getActivityAnchor(name);
+    const activityAnchor = getActivityAnchor(name, details);
+    const shareLabelId = `${activityAnchor}-share-label`;
+    activityCard.id = activityAnchor;
 
     // Calculate spots and capacity
     const totalSpots = details.max_participants;
@@ -644,9 +661,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
-      <div class="share-actions">
-        <span class="share-label">Share with friends:</span>
-        <div class="share-buttons">
+      <div class="share-actions" aria-labelledby="${shareLabelId}">
+        <span class="share-label" id="${shareLabelId}">Share with friends:</span>
+        <div class="share-buttons" role="group" aria-labelledby="${shareLabelId}">
           <button type="button" class="share-action share-copy-button">Copy Details</button>
           <a
             class="share-action"
