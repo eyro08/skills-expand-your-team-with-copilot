@@ -613,7 +613,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="share-actions">
         <span class="share-label">Share with friends:</span>
         <div class="share-buttons">
-          <button type="button" class="share-action share-copy-button">Copy Link</button>
+          <button type="button" class="share-action share-copy-button">Copy Details</button>
           <a
             class="share-action"
             href="${buildShareLink("email", shareDetails)}"
