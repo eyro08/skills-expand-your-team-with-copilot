@@ -23,14 +23,15 @@ def init_database():
     # Initialize activities if empty
     if activities_collection.count_documents({}) == 0:
         for name, details in initial_activities.items():
-            activities_collection.insert_one({"_id": name, **details})
+            activities_collection.insert_one(
+                {"_id": name, "difficulty": details.get("difficulty"), **details}
+            )
     else:
         for name, details in initial_activities.items():
-            if "difficulty" in details:
-                activities_collection.update_one(
-                    {"_id": name, "difficulty": {"$exists": False}},
-                    {"$set": {"difficulty": details["difficulty"]}}
-                )
+            activities_collection.update_one(
+                {"_id": name, "difficulty": {"$exists": False}},
+                {"$set": {"difficulty": details.get("difficulty")}}
+            )
             
     # Initialize teacher accounts if empty
     if teachers_collection.count_documents({}) == 0:

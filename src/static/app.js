@@ -660,15 +660,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   difficultyFilters.forEach((button) => {
     button.addEventListener("click", () => {
-      if (currentDifficulty === button.dataset.difficulty) {
-        difficultyFilters.forEach((btn) => btn.classList.remove("active"));
-        currentDifficulty = "";
-      } else {
-        difficultyFilters.forEach((btn) => btn.classList.remove("active"));
-        button.classList.add("active");
-        currentDifficulty = button.dataset.difficulty;
-      }
-
+      difficultyFilters.forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+      currentDifficulty = button.dataset.difficulty;
       fetchActivities();
     });
   });

@@ -46,6 +46,12 @@ class FakeActivitiesCollection:
                 continue
 
             if field == "difficulty":
+                if isinstance(condition, dict) and "$exists" in condition:
+                    has_difficulty = "difficulty" in document
+                    if has_difficulty != condition["$exists"]:
+                        return False
+                    continue
+
                 if document.get("difficulty") != condition:
                     if not (condition is None and "difficulty" not in document):
                         return False
