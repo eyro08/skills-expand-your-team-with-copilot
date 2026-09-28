@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Authentication state
   let currentUser = null;
+  let lastSharedActivityTarget = "";
 
   // Time range mappings for the dropdown
   const timeRanges = {
@@ -304,9 +305,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return details.schedule;
   }
 
+  function getActivityAnchor(name) {
+    return `activity-${name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")}`;
+  }
+
   function getActivityShareDetails(name, details) {
     const schedule = formatSchedule(details);
-    const shareUrl = `${window.location.origin}${window.location.pathname}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}#${getActivityAnchor(
+      name
+    )}`;
     const shareText = `Check out ${name} at Mergington High School! ${details.description} Meet-up time: ${schedule}.`;
 
     return {
@@ -359,6 +369,27 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error copying share details:", error);
       showMessage("Couldn't copy the share details. Please try again.", "error");
     }
+  }
+
+  function focusSharedActivity() {
+    const targetId = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+
+    if (!targetId || targetId === lastSharedActivityTarget) {
+      return;
+    }
+
+    const targetActivity = document.getElementById(targetId);
+    if (!targetActivity) {
+      return;
+    }
+
+    lastSharedActivityTarget = targetId;
+    targetActivity.classList.add("shared-activity-highlight");
+    targetActivity.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    setTimeout(() => {
+      targetActivity.classList.remove("shared-activity-highlight");
+    }, 2500);
   }
 
   // Function to determine activity type (this would ideally come from backend)
@@ -527,12 +558,15 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(filteredActivities).forEach(([name, details]) => {
       renderActivityCard(name, details);
     });
+
+    focusSharedActivity();
   }
 
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
+    activityCard.id = getActivityAnchor(name);
 
     // Calculate spots and capacity
     const totalSpots = details.max_participants;
@@ -666,9 +700,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const copyShareButton = activityCard.querySelector(".share-copy-button");
-    copyShareButton.addEventListener("click", () => {
-      copyShareDetails(shareDetails);
-    });
+    if (copyShareButton) {
+      copyShareButton.addEventListener("click", () => {
+        copyShareDetails(shareDetails);
+      });
+    }
 
     // Add click handler for register button (only when authenticated)
     if (currentUser) {
@@ -953,6 +989,11 @@ document.addEventListener("DOMContentLoaded", () => {
     setDayFilter,
     setTimeRangeFilter,
   };
+
+  window.addEventListener("hashchange", () => {
+    lastSharedActivityTarget = "";
+    focusSharedActivity();
+  });
 
   // Initialize app
   checkAuthentication();
