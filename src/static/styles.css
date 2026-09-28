@@ -53,9 +53,13 @@
   --border: #374151;
   --border-light: #4b5563;
   --border-focus: #6b7280;
+  --success: #4caf50;
   --success-light: #16351e;
+  --warning: #ffb74d;
   --warning-light: #4a3410;
+  --error: #ef5350;
   --error-light: #4a1f26;
+  --info: #4dd0e1;
   --info-light: #12313a;
   --header-control-background: rgba(17, 24, 39, 0.3);
   --header-control-hover: rgba(17, 24, 39, 0.45);

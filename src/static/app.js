@@ -112,7 +112,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function initializeTheme() {
-    applyTheme(getStoredTheme() || "light");
+    const savedTheme = getStoredTheme();
+    const preferredTheme =
+      savedTheme ||
+      (window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light");
+    applyTheme(preferredTheme);
   }
 
   // Initialize filters from active elements
