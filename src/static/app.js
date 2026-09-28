@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Authentication state
   let currentUser = null;
   let lastSharedActivityTarget = "";
+  let sharedActivityHighlightTimeout = null;
 
   // Time range mappings for the dropdown
   const timeRanges = {
@@ -387,7 +388,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function focusSharedActivity() {
-    const targetId = decodeURIComponent(window.location.hash.replace(/^#/, ""));
+    const rawTargetId = window.location.hash.replace(/^#/, "");
+    let targetId = rawTargetId;
+
+    try {
+      targetId = decodeURIComponent(rawTargetId);
+    } catch (error) {
+      console.warn("Unable to decode shared activity target:", error);
+    }
 
     if (!targetId || targetId === lastSharedActivityTarget) {
       return;
@@ -402,7 +410,8 @@ document.addEventListener("DOMContentLoaded", () => {
     targetActivity.classList.add("shared-activity-highlight");
     targetActivity.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    setTimeout(() => {
+    clearTimeout(sharedActivityHighlightTimeout);
+    sharedActivityHighlightTimeout = setTimeout(() => {
       targetActivity.classList.remove("shared-activity-highlight");
     }, 2500);
   }
