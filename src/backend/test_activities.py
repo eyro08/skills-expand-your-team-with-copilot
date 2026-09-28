@@ -101,6 +101,15 @@ class GetActivitiesDifficultyTests(unittest.TestCase):
 
         self.assertEqual(set(response.keys()), {"General Club"})
 
+    def test_no_difficulty_filter_returns_all_activities(self):
+        with patch.object(activities, "activities_collection", self.collection):
+            response = activities.get_activities()
+
+        self.assertEqual(
+            set(response.keys()),
+            {"General Club", "Beginner Club", "Advanced Club"},
+        )
+
     def test_specific_difficulty_includes_matching_and_general_activities(self):
         with patch.object(activities, "activities_collection", self.collection):
             response = activities.get_activities(difficulty="Beginner")

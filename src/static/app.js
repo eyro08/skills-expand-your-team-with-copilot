@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let searchQuery = "";
   let currentDay = "";
   let currentTimeRange = "";
-  let currentDifficulty = "All";
+  let currentDifficulty = "";
 
   // Authentication state
   let currentUser = null;
@@ -660,10 +660,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   difficultyFilters.forEach((button) => {
     button.addEventListener("click", () => {
-      difficultyFilters.forEach((btn) => btn.classList.remove("active"));
-      button.classList.add("active");
+      if (currentDifficulty === button.dataset.difficulty) {
+        difficultyFilters.forEach((btn) => btn.classList.remove("active"));
+        currentDifficulty = "";
+      } else {
+        difficultyFilters.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+        currentDifficulty = button.dataset.difficulty;
+      }
 
-      currentDifficulty = button.dataset.difficulty;
       fetchActivities();
     });
   });
