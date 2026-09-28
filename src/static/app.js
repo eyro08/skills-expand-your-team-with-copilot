@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const displayName = document.getElementById("display-name");
   const logoutButton = document.getElementById("logout-button");
   const themeToggle = document.getElementById("theme-toggle");
+  const themeToggleText = document.getElementById("theme-toggle-text");
   const themeIcon = themeToggle.querySelector(".theme-icon");
   const loginModal = document.getElementById("login-modal");
   const loginForm = document.getElementById("login-form");
@@ -106,6 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "aria-label",
       isDarkMode ? "Switch to light mode" : "Switch to dark mode"
     );
+    themeToggleText.textContent = isDarkMode ? "Dark mode" : "Light mode";
     themeIcon.textContent = isDarkMode ? "☀️" : "🌙";
   }
 

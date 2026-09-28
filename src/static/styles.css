@@ -340,7 +340,7 @@ button {
 .tooltip .tooltip-text {
   visibility: hidden;
   background-color: var(--tooltip-background);
-  color: var(--primary-text);
+  color: var(--text-primary);
   text-align: center;
   padding: 8px 12px;
   border-radius: 4px;
