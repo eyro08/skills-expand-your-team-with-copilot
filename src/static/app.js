@@ -45,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentUser = null;
   let lastSharedActivityTarget = "";
   let sharedActivityHighlightTimeout = null;
+  let highlightedSharedActivity = null;
 
   // Time range mappings for the dropdown
   const timeRanges = {
@@ -406,13 +407,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (
+      highlightedSharedActivity &&
+      highlightedSharedActivity !== targetActivity
+    ) {
+      highlightedSharedActivity.classList.remove("shared-activity-highlight");
+    }
+
     lastSharedActivityTarget = targetId;
+    highlightedSharedActivity = targetActivity;
     targetActivity.classList.add("shared-activity-highlight");
     targetActivity.scrollIntoView({ behavior: "smooth", block: "start" });
 
     clearTimeout(sharedActivityHighlightTimeout);
     sharedActivityHighlightTimeout = setTimeout(() => {
       targetActivity.classList.remove("shared-activity-highlight");
+      if (highlightedSharedActivity === targetActivity) {
+        highlightedSharedActivity = null;
+      }
     }, 2500);
   }
 
