@@ -304,6 +304,63 @@ document.addEventListener("DOMContentLoaded", () => {
     return details.schedule;
   }
 
+  function getActivityShareDetails(name, details) {
+    const schedule = formatSchedule(details);
+    const shareUrl = `${window.location.origin}${window.location.pathname}`;
+    const shareText = `Check out ${name} at Mergington High School! ${details.description} Meet-up time: ${schedule}.`;
+
+    return {
+      shareUrl,
+      shareText,
+      emailSubject: `Check out ${name} at Mergington High School`,
+    };
+  }
+
+  function buildShareLink(platform, shareDetails) {
+    const { shareText, shareUrl, emailSubject } = shareDetails;
+
+    if (platform === "email") {
+      return `mailto:?subject=${encodeURIComponent(
+        emailSubject
+      )}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}`)}`;
+    }
+
+    if (platform === "facebook") {
+      return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        shareUrl
+      )}&quote=${encodeURIComponent(shareText)}`;
+    }
+
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      shareText
+    )}&url=${encodeURIComponent(shareUrl)}`;
+  }
+
+  async function copyShareDetails(shareDetails) {
+    const shareContent = `${shareDetails.shareText}\n\n${shareDetails.shareUrl}`;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareContent);
+      } else {
+        const helperTextArea = document.createElement("textarea");
+        helperTextArea.value = shareContent;
+        helperTextArea.setAttribute("readonly", "");
+        helperTextArea.style.position = "absolute";
+        helperTextArea.style.left = "-9999px";
+        document.body.appendChild(helperTextArea);
+        helperTextArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(helperTextArea);
+      }
+
+      showMessage("Share details copied. Ready to send to a friend!", "success");
+    } catch (error) {
+      console.error("Error copying share details:", error);
+      showMessage("Couldn't copy the share details. Please try again.", "error");
+    }
+  }
+
   // Function to determine activity type (this would ideally come from backend)
   function getActivityType(activityName, description) {
     const name = activityName.toLowerCase();
@@ -498,6 +555,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
+    const shareDetails = getActivityShareDetails(name, details);
 
     // Create activity tag
     const tagHtml = `
@@ -552,6 +610,36 @@ document.addEventListener("DOMContentLoaded", () => {
             .join("")}
         </ul>
       </div>
+      <div class="share-actions">
+        <span class="share-label">Share with friends:</span>
+        <div class="share-buttons">
+          <button type="button" class="share-action share-copy-button">Copy Link</button>
+          <a
+            class="share-action"
+            href="${buildShareLink("email", shareDetails)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Email
+          </a>
+          <a
+            class="share-action"
+            href="${buildShareLink("facebook", shareDetails)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Facebook
+          </a>
+          <a
+            class="share-action"
+            href="${buildShareLink("x", shareDetails)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            X
+          </a>
+        </div>
+      </div>
       <div class="activity-card-actions">
         ${
           currentUser
@@ -575,6 +663,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
     deleteButtons.forEach((button) => {
       button.addEventListener("click", handleUnregister);
+    });
+
+    const copyShareButton = activityCard.querySelector(".share-copy-button");
+    copyShareButton.addEventListener("click", () => {
+      copyShareDetails(shareDetails);
     });
 
     // Add click handler for register button (only when authenticated)
